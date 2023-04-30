@@ -10,7 +10,8 @@
 
 const UInt32 kRetrieveRootNodeCall = 0x00950BB0;
 
-
+//DE LA MERDE
+/*
 // Retrieves the 1st/3rd person root ninode
 NiNoude* GetRootNode(bool firstPerson) {
 	_asm
@@ -48,6 +49,7 @@ NiNoude* FindNode(NiNoude* node, const char* name) {
 	return 0;
 }
 
+//DE LA MERDE
 bool init = false;
 PlayerCharacter* pPC = 0;
 NiNoude* nRoot3rd = 0;
@@ -65,7 +67,6 @@ void KickPanardInclinaison(NVSEMessagingInterface::Message* msg)
 		{
 			if (!(pPC->bThirdPerson) && (nRoot3rd->m_flags & 0x00000001) == 0)
 			{
-				/*
 				float angleX = (pPC->rotX * 180) / 3.14;
 
 				NiVector3 rot;
@@ -85,7 +86,7 @@ void KickPanardInclinaison(NVSEMessagingInterface::Message* msg)
 				nFakeRoot3rd->m_localRotate.data[6] = rotMat.data[6];
 				nFakeRoot3rd->m_localRotate.data[7] = rotMat.data[7];
 				nFakeRoot3rd->m_localRotate.data[8] = rotMat.data[8];
-				*/
+				
 				*(float*)0x011CD8D0 = 40.0f;
 			}
 			else
@@ -115,6 +116,20 @@ NVSEMessagingInterface* g_messagingInterface{};
 NVSEInterface* g_nvseInterface{};
 PluginHandle	g_pluginHandle = kPluginHandle_Invalid;
 
+
+
+bool __fastcall IsPlayerIdlePlaying(TESIdleForm *idleAnim)
+{
+	PlayerCharacter* thePlayer = 0;
+	thePlayer = PlayerCharacter::GetSingleton();
+
+	AnimData *animData3rd = thePlayer->baseProcess->GetAnimData();
+	AnimData *animData1st = thePlayer->firstPersonAnimData;
+
+	return (animData3rd->GetPlayedIdle() == idleAnim) || (animData1st->GetPlayedIdle() == idleAnim);
+}
+*/
+
 bool NVSEPlugin_Query(const NVSEInterface* nvse, PluginInfo* info)
 {
 	_MESSAGE("query");
@@ -139,6 +154,7 @@ bool NVSEPlugin_Load(NVSEInterface* nvse)
 {
 	_MESSAGE("load");
 
+	//DE LA MERDE
 	//g_pluginHandle = nvse->GetPluginHandle();
 
 	// save the NVSE interface in case we need it later
