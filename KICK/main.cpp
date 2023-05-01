@@ -117,17 +117,6 @@ NVSEInterface* g_nvseInterface{};
 PluginHandle	g_pluginHandle = kPluginHandle_Invalid;
 
 
-
-bool __fastcall IsPlayerIdlePlaying(TESIdleForm *idleAnim)
-{
-	PlayerCharacter* thePlayer = 0;
-	thePlayer = PlayerCharacter::GetSingleton();
-
-	AnimData *animData3rd = thePlayer->baseProcess->GetAnimData();
-	AnimData *animData1st = thePlayer->firstPersonAnimData;
-
-	return (animData3rd->GetPlayedIdle() == idleAnim) || (animData1st->GetPlayedIdle() == idleAnim);
-}
 */
 
 bool NVSEPlugin_Query(const NVSEInterface* nvse, PluginInfo* info)
