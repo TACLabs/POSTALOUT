@@ -198,7 +198,7 @@
     </Link>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>
-      <Command>copy "$(TargetPath)" "$(FalloutNVPath)\Data\NVSE\Plugins\$(TargetFileName)"</Command>
+      <Command>copy "$(TargetPath)" "C:\NIGGER\steamapps\common\Fallout New Vegas\Data\NVSE\plugins\PostalNVSE.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GECK|Win32'">
@@ -366,8 +366,7 @@
     <ClInclude Include="..\nvse\nvse\SafeWrite.h" />
     <ClInclude Include="..\nvse\nvse\Utilities.h" />
     <ClInclude Include="..\nvse\nvse\utility.h" />
-    <ClInclude Include="fn_intro_to_script_functions.h" />
-    <ClInclude Include="fn_typed_functions.h" />
+    <ClInclude Include="IsPlayerIdlePlaying.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

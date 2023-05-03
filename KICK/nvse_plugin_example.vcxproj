@@ -198,7 +198,7 @@
     </Link>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>
-      <Command>copy "$(TargetPath)" "D:\POSTALOUT\MO2\mods\Postal KICK\NVSE\plugins\KICK.dll"</Command>
+      <Command>copy "$(TargetPath)" "C:\Modding\MO2\mods\Postal KICK\NVSE\plugins\KICK.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GECK|Win32'">
