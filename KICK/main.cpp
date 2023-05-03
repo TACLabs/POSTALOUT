@@ -9,10 +9,57 @@
 //#include "NiNoudes.h"
 //#include "matrix.h"
 
+__declspec(naked) UInt32 __fastcall HexToUInt(const char* str)
+{
+	__asm
+	{
+		push	esi
+		call	StrLen
+		test	eax, eax
+		jz		done
+		lea		esi, [ecx + eax]
+		mov		ch, al
+		xor eax, eax
+		xor cl, cl
+		ALIGN 16
+		hexToInt:
+		dec		esi
+			movsx	edx, byte ptr[esi]
+			sub		dl, '0'
+			js		done
+			cmp		dl, 9
+			jle		doAdd
+			or dl, 0x20
+			cmp		dl, '1'
+			jl		done
+			cmp		dl, '6'
+			jg		done
+			sub		dl, 0x27
+			doAdd:
+		shl		edx, cl
+			add		eax, edx
+			add		cl, 4
+			dec		ch
+			jnz		hexToInt
+			done :
+		pop		esi
+			retn
+	}
+}
+
+
 bool init = false;
+
 PlayerCharacter* pc = 0;
+
 DataHandler* dh = 0;
+
+
 TESIdleForm* kickAnim;
+const char* modName = "PostalKICK.esp";
+const char* kickAnimIndex = "DBB";
+UInt32 kickAnimRefID = 0;
+
 
 void KickPanardInclinaison(NVSEMessagingInterface::Message* msg)
 {
@@ -22,19 +69,26 @@ void KickPanardInclinaison(NVSEMessagingInterface::Message* msg)
 	case NVSEMessagingInterface::kMessage_MainGameLoop:
 		if (init)
 		{
-			
+			if (!(pc->bThirdPerson) )
+			{
+				Console_Print("OK");
+			}
 		}
 		break;
 	case NVSEMessagingInterface::kMessage_ExitToMainMenu:
 		init = false;
 		break;
 	case NVSEMessagingInterface::kMessage_PostLoadGame:
-		init = true;
 
 		pc = PlayerCharacter::GetSingleton();
 		dh = DataHandler::Get();
 
+		UInt8 modIndex = dh->GetModIndex(modName);
+		kickAnimRefID = (HexToUInt(kickAnimIndex) & 0xFFFFFF) | (modIndex << 24);
 
+		kickAnim = (TESIdleForm*)(LookupFormByRefID(kickAnimRefID));
+
+		init = true;
 		break;
 	}
 }

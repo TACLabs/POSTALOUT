@@ -48,7 +48,7 @@ __declspec(naked) TESForm* __stdcall LookupFormByRefID(UInt32 refID)
 {
 	__asm
 	{
-		mov		ecx, ds:[0x11C54C0]
+		mov		ecx, ds:0x11C54C0
 		mov		eax, [esp+4]
 		xor		edx, edx
 		div		dword ptr [ecx+4]
