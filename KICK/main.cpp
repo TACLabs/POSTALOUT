@@ -9,6 +9,8 @@
 //#include "NiNoudes.h"
 //#include "matrix.h"
 
+
+
 __declspec(naked) UInt32 __fastcall HexToUInt(const char* str)
 {
 	__asm
@@ -109,7 +111,7 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 			if (!(pc->bThirdPerson) && IsPlayerIdlePlaying(kickAnim))
 			{
 				// Le corps de la troisième personne n'est pas visible
-				if ()
+				/*if ()
 				{
 					//Bah on l'affiche
 				}
@@ -117,12 +119,12 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 				{
 					//On fait notre tambouille avec le calcul puis l'inclinaison du body pour voir le panard en toutes circonstances
 
-				}
+				}*/
 			}
 			else
 			{
 			//Si on est toujours en première personne et que le corps de la troisième personne est toujours visible
-				if (!(pc->bThirdPerson)&&)
+				if (!(pc->bThirdPerson)/*&&*/)
 				{
 					//Bah on le désaffiche
 				}

@@ -342,7 +342,6 @@
       </ForcedIncludeFiles>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="matrix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\CommandTable.h" />
@@ -369,8 +368,6 @@
     <ClInclude Include="..\nvse\nvse\utility.h" />
     <ClInclude Include="fn_intro_to_script_functions.h" />
     <ClInclude Include="fn_typed_functions.h" />
-    <ClInclude Include="matrix.h" />
-    <ClInclude Include="NiNoudes.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
