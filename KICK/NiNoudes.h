@@ -208,7 +208,7 @@ public:
 	UInt32				unk054;			// 054
 	UInt32				unk058;			// 058
 	char				* accumRoot;	// 05C - bone? (seen "Bip01")
-	NiNode				* niNode060;	// 060
+	NiNoude				* niNode060;	// 060
 	// Not tested 064 and above
 };
 

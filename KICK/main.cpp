@@ -6,10 +6,47 @@
 #include "nvse/GameObjects.h"
 #include "nvse/SafeWrite.h"
 #include <string>
-//#include "NiNoudes.h"
+#include "NiNoudes.h"
 //#include "matrix.h"
 
+const UInt32 kRetrieveRootNodeCall = 0x00950BB0;
 
+// Retrieves the 1st/3rd person root ninode
+NiNoude* GetRootNode(bool firstPerson) {
+	_asm
+	{
+		movzx edx, firstPerson
+		mov eax, 0x011DEA3C // player
+		push edx
+		mov ecx, [eax]
+		call kRetrieveRootNodeCall
+	}
+}
+
+// Searches the children nodes to find the node with the specified name
+NiNoude* FindNode(NiNoude* node, const char* name) {
+
+	if (node && node->m_pcName) {
+		if (strcmp(node->m_pcName, name) == 0) {
+			return node;
+
+			// Check that the rtti type is NiNode or BSFadeNode
+		}
+		else if ((UInt32)node->GetType() != 0x011F4428 && (UInt32)node->GetType() != 0x011F9140) {
+			return 0;
+		}
+
+		int len = node->m_children.numObjs;
+		for (int i = 0; i < len; i++) {
+			NiNoude* n = FindNode((NiNoude*)node->m_children[i], name);
+			if (n != 0) {
+				return n;
+			}
+		}
+	}
+
+	return 0;
+}
 
 __declspec(naked) UInt32 __fastcall HexToUInt(const char* str)
 {
@@ -94,11 +131,16 @@ bool init = false;
 PlayerCharacter* pc = 0;
 DataHandler* dh = 0;
 
+NiNoude* Root3rdNiNoude = 0;
+NiNoude* FakeRoot3rdNiNoude = 0;
+
 TESIdleForm* kickAnim;
 const char* modName = "B42Bash.esp";
 const char* kickAnimIndex = "800";
 UInt32 kickAnimRefID = 0;
 
+
+int count = 0;
 
 void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 {
@@ -111,22 +153,27 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 			if (!(pc->bThirdPerson) && IsPlayerIdlePlaying(kickAnim))
 			{
 				// Le corps de la troisième personne n'est pas visible
-				/*if ()
+				if ((Root3rdNiNoude->m_flags & 0x00000001) == 1)
 				{
 					//Bah on l'affiche
+					Root3rdNiNoude->m_flags &= 0xFFFFFFFE;
+					
 				}
 				else
 				{
 					//On fait notre tambouille avec le calcul puis l'inclinaison du body pour voir le panard en toutes circonstances
-
-				}*/
+					
+					//Console_Print(std::to_string(count).c_str());
+				}
 			}
 			else
 			{
 			//Si on est toujours en première personne et que le corps de la troisième personne est toujours visible
-				if (!(pc->bThirdPerson)/*&&*/)
+				if (!(pc->bThirdPerson) && (Root3rdNiNoude->m_flags & 0x00000001) == 0)
 				{
 					//Bah on le désaffiche
+					Root3rdNiNoude->m_flags |= 0x00000001;
+					count++;
 				}
 			}
 		}
@@ -143,6 +190,9 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 		kickAnimRefID = (HexToUInt(kickAnimIndex) & 0xFFFFFF) | (modIndex << 24);
 
 		kickAnim = (TESIdleForm*)(LookupFormByRefID(kickAnimRefID));
+
+		Root3rdNiNoude = GetRootNode(0);
+		FakeRoot3rdNiNoude = FindNode(Root3rdNiNoude, "360Corr0");
 
 		init = true;
 		break;

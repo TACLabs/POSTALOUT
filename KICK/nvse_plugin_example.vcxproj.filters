@@ -142,6 +142,7 @@
     <ClInclude Include="..\nvse\nvse\GameUI.h">
       <Filter>nvse</Filter>
     </ClInclude>
+    <ClInclude Include="NiNoudes.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
