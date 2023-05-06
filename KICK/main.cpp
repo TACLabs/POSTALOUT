@@ -7,7 +7,7 @@
 #include "nvse/SafeWrite.h"
 #include <string>
 #include "NiNoudes.h"
-//#include "matrix.h"
+#include "matrix.h"
 
 const UInt32 kRetrieveRootNodeCall = 0x00950BB0;
 
@@ -140,7 +140,7 @@ const char* kickAnimIndex = "800";
 UInt32 kickAnimRefID = 0;
 
 
-int count = 0;
+int frameDelay = 0;
 
 void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 {
@@ -152,18 +152,49 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 			//ALERTE : ON FAIT UN KICK
 			if (!(pc->bThirdPerson) && IsPlayerIdlePlaying(kickAnim))
 			{
-				// Le corps de la troisième personne n'est pas visible
-				if ((Root3rdNiNoude->m_flags & 0x00000001) == 1)
+				if (frameDelay < 2)
 				{
-					//Bah on l'affiche
-					Root3rdNiNoude->m_flags &= 0xFFFFFFFE;
-					
+					frameDelay++;
 				}
 				else
 				{
-					//On fait notre tambouille avec le calcul puis l'inclinaison du body pour voir le panard en toutes circonstances
-					
-					//Console_Print(std::to_string(count).c_str());
+					// Le corps de la troisième personne n'est pas visible
+					if ((Root3rdNiNoude->m_flags & 0x00000001) == 1)
+					{
+						//Bah on l'affiche
+						Root3rdNiNoude->m_flags &= 0xFFFFFFFE;
+
+					}
+					else
+					{
+						//On fait notre tambouille avec le calcul puis l'inclinaison du body pour voir le panard en toutes circonstances
+						NiVector3 rot;
+						float angle = pc->rotX;
+
+						rot.x = 0;
+						rot.y = angle;
+						rot.z = 0;
+
+						EulerToMatrix(&(FakeRoot3rdNiNoude->m_localRotate), &rot);
+
+						angle = (-1) * ((angle) * (180 / 3.14));
+						float translationX = (0.534 * angle) + 1;
+						float translationZ = (0.0049 * (angle * angle)) + (0.146 * angle) + 4.54;
+
+						
+						if (1)
+						{
+							FakeRoot3rdNiNoude->m_localTranslate.x = translationX;
+							FakeRoot3rdNiNoude->m_localTranslate.y = 0;
+							FakeRoot3rdNiNoude->m_localTranslate.z = translationZ - 40;
+						}
+						else
+						{
+							FakeRoot3rdNiNoude->m_localTranslate.x = translationX;
+							FakeRoot3rdNiNoude->m_localTranslate.y = 0;
+							FakeRoot3rdNiNoude->m_localTranslate.z = translationZ;
+						}
+					}
 				}
 			}
 			else
@@ -173,9 +204,15 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 				{
 					//Bah on le désaffiche
 					Root3rdNiNoude->m_flags |= 0x00000001;
-					count++;
+
+					FakeRoot3rdNiNoude->m_localTranslate.x = 0;
+					FakeRoot3rdNiNoude->m_localTranslate.y = 0;
+					FakeRoot3rdNiNoude->m_localTranslate.z = 0;
+
+					frameDelay = 0;
 				}
 			}
+
 		}
 		break;
 	case NVSEMessagingInterface::kMessage_ExitToMainMenu:

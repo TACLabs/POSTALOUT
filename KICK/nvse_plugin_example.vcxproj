@@ -198,7 +198,7 @@
     </Link>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>
-      <Command>copy "$(TargetPath)" "C:\Modding\MO2\mods\Postal KICK\NVSE\plugins\KICK.dll"</Command>
+      <Command>copy "$(TargetPath)" "D:\POSTALOUT\MO2\mods\Postal KICK\NVSE\plugins\KICK.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GECK|Win32'">
@@ -342,6 +342,7 @@
       </ForcedIncludeFiles>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="matrix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\CommandTable.h" />
@@ -368,6 +369,7 @@
     <ClInclude Include="..\nvse\nvse\utility.h" />
     <ClInclude Include="fn_intro_to_script_functions.h" />
     <ClInclude Include="fn_typed_functions.h" />
+    <ClInclude Include="matrix.h" />
     <ClInclude Include="NiNoudes.h" />
   </ItemGroup>
   <ItemGroup>

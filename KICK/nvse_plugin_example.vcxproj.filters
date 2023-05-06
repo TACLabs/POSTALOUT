@@ -68,6 +68,7 @@
     <ClCompile Include="..\nvse\nvse\GameProcess.cpp">
       <Filter>nvse</Filter>
     </ClCompile>
+    <ClCompile Include="matrix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\GameAPI.h">
@@ -143,6 +144,7 @@
       <Filter>nvse</Filter>
     </ClInclude>
     <ClInclude Include="NiNoudes.h" />
+    <ClInclude Include="matrix.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
