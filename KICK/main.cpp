@@ -5,6 +5,7 @@
 #include "nvse/ParamInfos.h"
 #include "nvse/GameObjects.h"
 #include "nvse/SafeWrite.h"
+#include "nvse/GameSound.h"
 #include <string>
 #include "NiNoudes.h"
 #include "matrix.h"
@@ -125,6 +126,25 @@ bool __fastcall IsPlayerIdlePlaying(TESIdleForm* idleAnim)
 	return (animData3rd && (animData3rd->GetPlayedIdle() == idleAnim)) || (animData1st && (animData1st->GetPlayedIdle() == idleAnim));
 }
 
+TESSound* kickAnimStop;
+bool __fastcall ilFautStopperLeKick()
+{
+	BSAudioManager* audioMngr = BSAudioManager::Get();
+	auto sndIter = audioMngr->playingSounds.Begin();
+	BSGameSound* gameSound;
+
+	for (; sndIter; ++sndIter)
+	{
+		if (!(gameSound = sndIter.Get()) || (gameSound->sourceSound != kickAnimStop))
+			continue;
+		gameSound->stateFlags &= 0xFFFFFF0F;
+		gameSound->stateFlags |= 0x10;
+		return true;
+	}
+
+	return false;
+}
+
 
 bool init = false;
 
@@ -139,6 +159,16 @@ const char* modName = "B42Bash.esp";
 const char* kickAnimIndex = "800";
 UInt32 kickAnimRefID = 0;
 
+const char* modName2 = "PostalKICK.esp";
+const char* kickAnimStopIndex = "9CEA";
+UInt32 kickAnimStopRefID = 0;
+
+
+bool IsPlayerSneaking()
+{
+	UInt32 movementFlags = pc->GetMovementFlags();
+	return 1 == ((movementFlags >> 10) & 1);
+}
 
 int frameDelay = 0;
 
@@ -149,69 +179,73 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 	case NVSEMessagingInterface::kMessage_MainGameLoop:
 		if (init)
 		{
+
+			if (ilFautStopperLeKick())
+			{
+				//Console_Print("reveille-toi");
+				Root3rdNiNoude->m_flags |= 0x00000001;
+
+				//On remets le skeleton à l'endroit
+				FakeRoot3rdNiNoude->m_localTranslate.x = 0;
+				FakeRoot3rdNiNoude->m_localTranslate.y = 0;
+				FakeRoot3rdNiNoude->m_localTranslate.z = 0;
+
+				NiVector3 rot;
+				rot.x = 0;
+				rot.y = 0;
+				rot.z = 0;
+				EulerToMatrix(&(FakeRoot3rdNiNoude->m_localRotate), &rot);
+
+				//On force l'arrêt de l'animation
+				AnimData* animData3rd = pc->baseProcess->GetAnimData();
+				ThisStdCall(0x498910, animData3rd, true, false);
+
+				//On reset le frame delay
+				frameDelay = 0;
+			}
+
+
 			//ALERTE : ON FAIT UN KICK
 			if (!(pc->bThirdPerson) && IsPlayerIdlePlaying(kickAnim))
 			{
+				// Petit délai imposé avant d'afficher le corps de la troisième personne
 				if (frameDelay < 2)
 				{
 					frameDelay++;
 				}
+				else if ((Root3rdNiNoude->m_flags & 0x00000001) == 1)
+				{
+					Root3rdNiNoude->m_flags &= 0xFFFFFFFE;
+				}
+
+				//On fait notre tambouille avec le calcul puis l'inclinaison du body pour voir le panard en toutes circonstances
+				NiVector3 rot;
+				float angle = pc->rotX;
+
+				rot.x = 0;
+				rot.y = angle;
+				rot.z = 0;
+
+				EulerToMatrix(&(FakeRoot3rdNiNoude->m_localRotate), &rot);
+
+				angle = (-1) * ((angle) * (180 / 3.14));
+				float translationX = (0.534 * angle) + 1;
+				float translationZ = (0.0049 * (angle * angle)) + (0.146 * angle) + 4.54;
+
+
+				if (IsPlayerSneaking())
+				{
+					FakeRoot3rdNiNoude->m_localTranslate.x = translationX;
+					FakeRoot3rdNiNoude->m_localTranslate.y = 0;
+					FakeRoot3rdNiNoude->m_localTranslate.z = translationZ - 40;
+				}
 				else
 				{
-					// Le corps de la troisième personne n'est pas visible
-					if ((Root3rdNiNoude->m_flags & 0x00000001) == 1)
-					{
-						//Bah on l'affiche
-						Root3rdNiNoude->m_flags &= 0xFFFFFFFE;
-
-					}
-					else
-					{
-						//On fait notre tambouille avec le calcul puis l'inclinaison du body pour voir le panard en toutes circonstances
-						NiVector3 rot;
-						float angle = pc->rotX;
-
-						rot.x = 0;
-						rot.y = angle;
-						rot.z = 0;
-
-						EulerToMatrix(&(FakeRoot3rdNiNoude->m_localRotate), &rot);
-
-						angle = (-1) * ((angle) * (180 / 3.14));
-						float translationX = (0.534 * angle) + 1;
-						float translationZ = (0.0049 * (angle * angle)) + (0.146 * angle) + 4.54;
-
-						
-						if (1)
-						{
-							FakeRoot3rdNiNoude->m_localTranslate.x = translationX;
-							FakeRoot3rdNiNoude->m_localTranslate.y = 0;
-							FakeRoot3rdNiNoude->m_localTranslate.z = translationZ - 40;
-						}
-						else
-						{
-							FakeRoot3rdNiNoude->m_localTranslate.x = translationX;
-							FakeRoot3rdNiNoude->m_localTranslate.y = 0;
-							FakeRoot3rdNiNoude->m_localTranslate.z = translationZ;
-						}
-					}
-				}
-			}
-			else
-			{
-			//Si on est toujours en première personne et que le corps de la troisième personne est toujours visible
-				if (!(pc->bThirdPerson) && (Root3rdNiNoude->m_flags & 0x00000001) == 0)
-				{
-					//Bah on le désaffiche
-					Root3rdNiNoude->m_flags |= 0x00000001;
-
-					FakeRoot3rdNiNoude->m_localTranslate.x = 0;
+					FakeRoot3rdNiNoude->m_localTranslate.x = translationX;
 					FakeRoot3rdNiNoude->m_localTranslate.y = 0;
-					FakeRoot3rdNiNoude->m_localTranslate.z = 0;
-
-					frameDelay = 0;
-				}
-			}
+					FakeRoot3rdNiNoude->m_localTranslate.z = translationZ;
+				}	
+		}
 
 		}
 		break;
@@ -227,6 +261,11 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 		kickAnimRefID = (HexToUInt(kickAnimIndex) & 0xFFFFFF) | (modIndex << 24);
 
 		kickAnim = (TESIdleForm*)(LookupFormByRefID(kickAnimRefID));
+
+		UInt8 modIndex2 = dh->GetModIndex(modName2);
+		kickAnimStopRefID = (HexToUInt(kickAnimStopIndex) & 0xFFFFFF) | (modIndex2 << 24);
+
+		kickAnimStop = (TESSound*)(LookupFormByRefID(kickAnimStopRefID));
 
 		Root3rdNiNoude = GetRootNode(0);
 		FakeRoot3rdNiNoude = FindNode(Root3rdNiNoude, "360Corr0");

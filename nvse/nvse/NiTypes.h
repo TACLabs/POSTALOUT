@@ -182,6 +182,9 @@ struct NiTSet
 	UInt16	length;		// 06
 };
 
+
+#define ZERO_BYTES(addr, size) __stosb((UInt8*)(addr), 0, size)
+
 // 10
 // this is a NiTPointerMap <UInt32, T_Data>
 // todo: generalize key
@@ -189,149 +192,146 @@ template <typename T_Data>
 class NiTPointerMap
 {
 public:
-	NiTPointerMap();
-	virtual ~NiTPointerMap();
-
 	struct Entry
 	{
-		Entry	* next;
-		UInt32	key;
-		T_Data	* data;
+		Entry* next;
+		UInt32		key;
+		T_Data* data;
 	};
 
-	// note: traverses in non-numerical order
-	class Iterator
-	{
-		friend NiTPointerMap;
-
-	public:
-		Iterator(NiTPointerMap * table, Entry * entry = NULL, UInt32 bucket = 0)
-			:m_table(table), m_entry(entry), m_bucket(bucket) { FindValid(); }
-		~Iterator() { }
-
-		T_Data *	Get(void);
-		UInt32		GetKey(void);
-		bool		Next(void);
-		bool		Done(void);
-
-	private:
-		void		FindValid(void);
-
-		NiTPointerMap	* m_table;
-		Entry		* m_entry;
-		UInt32		m_bucket;
-	};
-
+	virtual void	Destroy(bool doFree);
 	virtual UInt32	CalculateBucket(UInt32 key);
 	virtual bool	CompareKey(UInt32 lhs, UInt32 rhs);
-	virtual void	Fn_03(UInt32 arg0, UInt32 arg1, UInt32 arg2);	// assign to entry
-	virtual void	Fn_04(UInt32 arg);
-	virtual void	Fn_05(void);	// locked operations
-	virtual void	Fn_06(void);	// locked operations
+	virtual void	FillEntry(Entry* entry, UInt32 key, T_Data data);
+	virtual void	FreeKey(Entry* entry);
+	virtual Entry* AllocNewEntry();
+	virtual void	FreeEntry(Entry* entry);
 
-	T_Data *	Lookup(UInt32 key);
-	bool		Insert(Entry* nuEntry);
+	UInt32		m_numBuckets;	// 04
+	Entry** m_buckets;	// 08
+	UInt32		m_numItems;		// 0C
 
-//	void	** _vtbl;		// 0
-	UInt32	m_numBuckets;	// 4
-	Entry	** m_buckets;	// 8
-	UInt32	m_numItems;		// C
+	bool HasKey(UInt32 key) const
+	{
+		for (Entry* entry = m_buckets[key % m_numBuckets]; entry; entry = entry->next)
+			if (key == entry->key) return true;
+		return false;
+	}
+
+	T_Data* Lookup(UInt32 key) const;
+	void Insert(UInt32 key, T_Data value);
+
+	void DumpLoads()
+	{
+		int loadsArray[0x80];
+		ZERO_BYTES(loadsArray, sizeof(loadsArray));
+		Entry** pBucket = m_buckets, * entry;
+		UInt32 maxLoad = 0, entryCount;
+		for (Entry** pEnd = m_buckets + m_numBuckets; pBucket != pEnd; pBucket++)
+		{
+			entryCount = 0;
+			entry = *pBucket;
+			while (entry)
+			{
+				entryCount++;
+				entry = entry->next;
+			}
+			loadsArray[entryCount]++;
+			if (maxLoad < entryCount)
+				maxLoad = entryCount;
+		}
+		//PrintDebug("Size = %d\nBuckets = %d\n----------------\n", m_numItems, m_numBuckets);
+		//for (UInt32 iter = 0; iter <= maxLoad; iter++)
+			//PrintDebug("%d:\t%05d (%.4f%%)", iter, loadsArray[iter], 100.0 * (double)loadsArray[iter] / m_numItems);
+	}
+
+	class Iterator
+	{
+		NiTPointerMap* table;
+		Entry** bucket;
+		Entry* entry;
+
+		void FindNonEmpty()
+		{
+			for (Entry** end = &table->m_buckets[table->m_numBuckets]; bucket != end; bucket++)
+				if (entry = *bucket) break;
+		}
+
+	public:
+		Iterator(NiTPointerMap& _table) : table(&_table), bucket(table->m_buckets), entry(nullptr) { FindNonEmpty(); }
+
+		explicit operator bool() const { return entry != nullptr; }
+		void operator++()
+		{
+			entry = entry->next;
+			if (!entry)
+			{
+				bucket++;
+				FindNonEmpty();
+			}
+		}
+		T_Data* Get() const { return entry->data; }
+		UInt32 Key() const { return entry->key; }
+	};
+
+	Iterator Begin() { return Iterator(*this); }
 };
 
-template <typename T_Data>
-T_Data * NiTPointerMap <T_Data>::Lookup(UInt32 key)
-{
-	for(Entry * traverse = m_buckets[key % m_numBuckets]; traverse; traverse = traverse->next)
-		if(traverse->key == key)
-			return traverse->data;
-	
-	return NULL;
-}
+#define CALL_EAX(addr) __asm mov eax, addr __asm call eax
 
 template <typename T_Data>
-bool NiTPointerMap<T_Data>::Insert(Entry* nuEntry)
+__declspec(naked) T_Data* NiTPointerMap<T_Data>::Lookup(UInt32 key) const
 {
-	// game code does not appear to care about ordering of entries in buckets
-	UInt32 bucket = nuEntry->key % m_numBuckets;
-	Entry* prev = NULL;
-	for (Entry* cur = m_buckets[bucket]; cur; cur = cur->next) {
-		if (cur->key == nuEntry->key) {
-			return false;
-		}
-		else if (!cur->next) {
-			prev = cur;
-			break;
-		}
-	}
-
-	if (prev) {
-		prev->next = nuEntry;
-	}
-	else {
-		m_buckets[bucket] = nuEntry;
-	}
-
-	m_numBuckets++;
-	return true;
-}
-
-template <typename T_Data>
-T_Data * NiTPointerMap <T_Data>::Iterator::Get(void)
-{
-	if(m_entry)
-		return m_entry->data;
-
-	return NULL;
-}
-
-template <typename T_Data>
-UInt32 NiTPointerMap <T_Data>::Iterator::GetKey(void)
-{
-	if(m_entry)
-		return m_entry->key;
-
-	return 0;
-}
-
-template <typename T_Data>
-bool NiTPointerMap <T_Data>::Iterator::Next(void)
-{
-	if(m_entry)
-		m_entry = m_entry->next;
-
-	while(!m_entry && (m_bucket < (m_table->m_numBuckets - 1)))
+	__asm
 	{
-		m_bucket++;
-
-		m_entry = m_table->m_buckets[m_bucket];
+		mov		eax, [esp + 4]
+		xor edx, edx
+		div		dword ptr[ecx + 4]
+		mov		eax, [ecx + 8]
+		mov		eax, [eax + edx * 4]
+		test	eax, eax
+		jz		done
+		mov		edx, [esp + 4]
+		ALIGN 16
+		iterHead:
+		cmp[eax + 4], edx
+			jz		found
+			mov		eax, [eax]
+			test	eax, eax
+			jnz		iterHead
+			retn	4
+			found:
+		mov		eax, [eax + 8]
+			done :
+			retn	4
 	}
-
-	return m_entry != NULL;
 }
 
 template <typename T_Data>
-bool NiTPointerMap <T_Data>::Iterator::Done(void)
+__declspec(naked) void NiTPointerMap<T_Data>::Insert(UInt32 key, T_Data value)
 {
-	return m_entry == NULL;
-}
-
-template <typename T_Data>
-void NiTPointerMap <T_Data>::Iterator::FindValid(void)
-{
-	// validate bucket
-	if(m_bucket >= m_table->m_numBuckets) return;
-
-	// get bucket
-	m_entry = m_table->m_buckets[m_bucket];
-
-	// find non-empty bucket
-	while(!m_entry && (m_bucket < (m_table->m_numBuckets - 1)))
+	__asm
 	{
-		m_bucket++;
-
-		m_entry = m_table->m_buckets[m_bucket];
+		mov		eax, [esp + 4]
+		xor edx, edx
+		div		dword ptr[ecx + 4]
+		mov		eax, [ecx + 8]
+		lea		eax, [eax + edx * 4]
+		push	eax
+		inc		dword ptr[ecx + 0xC]
+		CALL_EAX(0x43A010)
+		pop		ecx
+		mov		edx, [ecx]
+		mov[eax], edx
+		mov		edx, [esp + 4]
+		mov[eax + 4], edx
+		mov		edx, [esp + 8]
+		mov[eax + 8], edx
+		mov[ecx], eax
+		retn	8
 	}
 }
+
 
 // 10
 // todo: NiTPointerMap should derive from this
