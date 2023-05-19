@@ -153,6 +153,8 @@ DataHandler* dh = 0;
 
 NiNoude* Root3rdNiNoude = 0;
 NiNoude* FakeRoot3rdNiNoude = 0;
+NiNoude* nSpineNiNoude = 0;
+
 
 TESIdleForm* kickAnim;
 const char* modName = "B42Bash.esp";
@@ -189,6 +191,8 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 				FakeRoot3rdNiNoude->m_localTranslate.x = 0;
 				FakeRoot3rdNiNoude->m_localTranslate.y = 0;
 				FakeRoot3rdNiNoude->m_localTranslate.z = 0;
+
+				nSpineNiNoude->m_localScale = 1;
 
 				NiVector3 rot;
 				rot.x = 0;
@@ -244,7 +248,8 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 					FakeRoot3rdNiNoude->m_localTranslate.x = translationX;
 					FakeRoot3rdNiNoude->m_localTranslate.y = 0;
 					FakeRoot3rdNiNoude->m_localTranslate.z = translationZ;
-				}	
+				}
+				nSpineNiNoude->m_localScale = 0.001;
 		}
 
 		}
@@ -269,6 +274,8 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 
 		Root3rdNiNoude = GetRootNode(0);
 		FakeRoot3rdNiNoude = FindNode(Root3rdNiNoude, "360Corr0");
+
+		nSpineNiNoude = FindNode(Root3rdNiNoude, "Bip01 Spine");
 
 		init = true;
 		break;
