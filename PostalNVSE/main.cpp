@@ -89,7 +89,7 @@ bool NVSEPlugin_Load(NVSEInterface* nvse)
 	 **************************************************************************/
 
 	// Do NOT use this value when releasing your plugin; request your own opcode range.
-	UInt32 const examplePluginOpcodeBase = 0x6969;
+	UInt32 const examplePluginOpcodeBase = 0x3C80;
 	
 	 // register commands
 	nvse->SetOpcodeBase(examplePluginOpcodeBase);
