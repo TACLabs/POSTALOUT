@@ -198,7 +198,7 @@
     </Link>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>
-      <Command>copy "$(TargetPath)" "C:\NIGGER\steamapps\common\Fallout New Vegas\Data\NVSE\plugins\PostalNVSE.dll"</Command>
+      <Command>copy "$(TargetPath)" "C:\Users\Alexandre\AppData\Local\ModOrganizer\New Vegas\mods\PostalNVSE\NVSE\plugins\PostalNVSE.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GECK|Win32'">
