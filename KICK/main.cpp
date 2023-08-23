@@ -12,6 +12,7 @@
 
 const UInt32 kRetrieveRootNodeCall = 0x00950BB0;
 
+
 // Retrieves the 1st/3rd person root ninode
 NiNoude* GetRootNode(bool firstPerson) {
 	_asm
@@ -21,6 +22,44 @@ NiNoude* GetRootNode(bool firstPerson) {
 		push edx
 		mov ecx, [eax]
 		call kRetrieveRootNodeCall
+	}
+}
+
+const UInt32 kApplyDarknessShader01Call = 0x00450B80;
+const UInt32 kApplyDarknessShader02Call = 0x00B5D9F0;
+
+void ApplyDarknessShader(bool firstPerson) {
+	NiNoude* nRoot = GetRootNode(firstPerson);
+	_asm
+	{
+		mov eax, nRoot
+		push 1
+		push eax
+		push 0
+		call kApplyDarknessShader01Call
+		add esp, 4
+		mov ecx, eax
+		call kApplyDarknessShader02Call
+	}
+}
+
+const UInt32 kFixDarknessShaderHook = 0x00943841;
+const UInt32 kFixDarknessShaderReturn = 0x00943865;
+
+// Fix a bug with the 3rd person body appearing black when in interiors
+static _declspec(naked) void HookFixDarknessShader(void)
+{
+	_asm
+	{
+		push 1
+		call ApplyDarknessShader
+		add esp, 4
+
+		push 0
+		call ApplyDarknessShader
+		add esp, 4
+
+		jmp kFixDarknessShaderReturn
 	}
 }
 
@@ -250,7 +289,7 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 					FakeRoot3rdNiNoude->m_localTranslate.z = translationZ;
 				}
 				nSpineNiNoude->m_localScale = 0.001;
-		}
+			}
 
 		}
 		break;
@@ -281,6 +320,26 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 		break;
 	}
 }
+
+bool WriteJump(int addressFrom1, int addressFrom2, int addressTo)
+{
+	DWORD oldProtect = 0;
+
+	int len1 = addressFrom2 - addressFrom1;
+	if (VirtualProtect((void*)addressFrom1, len1, PAGE_EXECUTE_READWRITE, &oldProtect))
+	{
+		*((unsigned char*)addressFrom1) = (unsigned char)0xE9;
+		*((int*)(addressFrom1 + 1)) = (int)addressTo - addressFrom1 - 5;
+		for (int i = 5; i < len1; i++)
+			*((unsigned char*)(i + addressFrom1)) = (unsigned char)0x90;
+		if (VirtualProtect((void*)addressFrom1, len1, oldProtect, &oldProtect))
+			return true;
+	}
+
+	return false;
+}
+
+
 
 NVSEMessagingInterface* g_messagingInterface{};
 NVSEInterface* g_nvseInterface{};
@@ -325,6 +384,8 @@ bool NVSEPlugin_Load(NVSEInterface* nvse)
 	// from being visible if the 3rd person body is visible
 	SafeWrite16(0x00874D86, 0x9090);
 	SafeWrite32(0x00874D88, 0x90909090);
+
+	WriteRelJump(kFixDarknessShaderHook, (UInt32)HookFixDarknessShader);
 
 	return true;
 }
