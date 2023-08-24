@@ -193,7 +193,7 @@ DataHandler* dh = 0;
 NiNoude* Root3rdNiNoude = 0;
 NiNoude* FakeRoot3rdNiNoude = 0;
 NiNoude* nSpineNiNoude = 0;
-
+NiNoude* weaponNiNoude = 0;
 
 TESIdleForm* kickAnim;
 const char* modName = "B42Bash.esp";
@@ -224,6 +224,7 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 			if (ilFautStopperLeKick())
 			{
 				//Console_Print("reveille-toi");
+				weaponNiNoude->m_flags &= 0xFFFFFFFE;
 				Root3rdNiNoude->m_flags |= 0x00000001;
 
 				//On remets le skeleton à l'endroit
@@ -259,6 +260,7 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 				else if ((Root3rdNiNoude->m_flags & 0x00000001) == 1)
 				{
 					Root3rdNiNoude->m_flags &= 0xFFFFFFFE;
+					weaponNiNoude->m_flags |= 0x00000001;
 				}
 
 				//On fait notre tambouille avec le calcul puis l'inclinaison du body pour voir le panard en toutes circonstances
@@ -315,6 +317,8 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 		FakeRoot3rdNiNoude = FindNode(Root3rdNiNoude, "360Corr0");
 
 		nSpineNiNoude = FindNode(Root3rdNiNoude, "Bip01 Spine");
+
+		weaponNiNoude = FindNode(Root3rdNiNoude, "Weapon");
 
 		init = true;
 		break;
