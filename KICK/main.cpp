@@ -261,6 +261,7 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 				{
 					Root3rdNiNoude->m_flags &= 0xFFFFFFFE;
 					weaponNiNoude->m_flags |= 0x00000001;
+					nSpineNiNoude->m_localScale = 0.001;
 				}
 
 				//On fait notre tambouille avec le calcul puis l'inclinaison du body pour voir le panard en toutes circonstances
@@ -290,7 +291,7 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 					FakeRoot3rdNiNoude->m_localTranslate.y = 0;
 					FakeRoot3rdNiNoude->m_localTranslate.z = translationZ;
 				}
-				nSpineNiNoude->m_localScale = 0.001;
+				
 			}
 
 		}
