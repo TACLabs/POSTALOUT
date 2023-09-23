@@ -342,7 +342,6 @@
       </ForcedIncludeFiles>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="SetLinearVelocityNoCheck.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\CommandTable.h" />
@@ -368,6 +367,7 @@
     <ClInclude Include="..\nvse\nvse\Utilities.h" />
     <ClInclude Include="..\nvse\nvse\utility.h" />
     <ClInclude Include="IsPlayerIdlePlaying.h" />
+    <ClInclude Include="OnStealEventHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

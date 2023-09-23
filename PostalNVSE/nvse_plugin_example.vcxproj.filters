@@ -65,7 +65,6 @@
     <ClCompile Include="..\nvse\nvse\GameProcess.cpp">
       <Filter>nvse</Filter>
     </ClCompile>
-    <ClCompile Include="SetLinearVelocityNoCheck.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\nvse\nvse\GameAPI.h">
@@ -135,6 +134,7 @@
       <Filter>nvse</Filter>
     </ClInclude>
     <ClInclude Include="IsPlayerIdlePlaying.h" />
+    <ClInclude Include="OnStealEventHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

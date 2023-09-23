@@ -3,6 +3,8 @@
 #include "nvse/GameAPI.h"
 #include "nvse/ParamInfos.h"
 #include "nvse/GameObjects.h"
+#include "SafeWrite.h"
+#include "EventParams.h"
 #include <string>
 //NoGore is unsupported in xNVSE
 
@@ -27,6 +29,7 @@ bool (*ExtractArgsEx)(COMMAND_ARGS_EX, ...);
  * and they are included after such globals/macros have been defined.
  ***************/
 #include "IsPlayerIdlePlaying.h"
+#include "OnStealEventHandler.h"
 
 // Shortcut macro to register a script command (assigning it an Opcode).
 #define RegisterScriptCommand(name) 	nvse->RegisterCommand(&kCommandInfo_ ##name)
@@ -39,6 +42,9 @@ bool (*ExtractArgsEx)(COMMAND_ARGS_EX, ...);
 #define REG_TYPED_CMD(name, type)	nvse->RegisterTypedCommand(&kCommandInfo_##name,kRetnType_##type)
 
 DEFINE_CMD_COND_PLUGIN(IsPlayerIdlePlaying, "is le player idle playing sur l'un de ses deux animdatas ?", 0, kParams_OneIdleForm);
+
+using EventFlags = NVSEEventManagerInterface::EventFlags;
+
 
 bool NVSEPlugin_Query(const NVSEInterface* nvse, PluginInfo* info)
 {
@@ -125,6 +131,13 @@ bool NVSEPlugin_Load(NVSEInterface* nvse)
 	REG_TYPED_CMD(ExamplePlugin_ReturnArray, Array);
 	*/
 	REG_CMD(IsPlayerIdlePlaying);
+
+	if (!nvse->isEditor)
+	{
+		OnStealEventHandler::WriteHook();
+		g_eventInterface->RegisterEvent(OnStealEventHandler::eventName, 0, 0, EventFlags::kFlag_FlushOnLoad);
+	}
+
 
 
 	return true;
