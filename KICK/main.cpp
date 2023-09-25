@@ -300,28 +300,30 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 		init = false;
 		break;
 	case NVSEMessagingInterface::kMessage_PostLoadGame:
+		if (!init)
+		{
+			pc = PlayerCharacter::GetSingleton();
+			dh = DataHandler::Get();
 
-		pc = PlayerCharacter::GetSingleton();
-		dh = DataHandler::Get();
+			UInt8 modIndex = dh->GetModIndex(modName);
+			kickAnimRefID = (HexToUInt(kickAnimIndex) & 0xFFFFFF) | (modIndex << 24);
 
-		UInt8 modIndex = dh->GetModIndex(modName);
-		kickAnimRefID = (HexToUInt(kickAnimIndex) & 0xFFFFFF) | (modIndex << 24);
+			kickAnim = (TESIdleForm*)(LookupFormByRefID(kickAnimRefID));
 
-		kickAnim = (TESIdleForm*)(LookupFormByRefID(kickAnimRefID));
+			UInt8 modIndex2 = dh->GetModIndex(modName2);
+			kickAnimStopRefID = (HexToUInt(kickAnimStopIndex) & 0xFFFFFF) | (modIndex2 << 24);
 
-		UInt8 modIndex2 = dh->GetModIndex(modName2);
-		kickAnimStopRefID = (HexToUInt(kickAnimStopIndex) & 0xFFFFFF) | (modIndex2 << 24);
+			kickAnimStop = (TESSound*)(LookupFormByRefID(kickAnimStopRefID));
 
-		kickAnimStop = (TESSound*)(LookupFormByRefID(kickAnimStopRefID));
+			Root3rdNiNoude = GetRootNode(0);
+			FakeRoot3rdNiNoude = FindNode(Root3rdNiNoude, "360Corr0");
 
-		Root3rdNiNoude = GetRootNode(0);
-		FakeRoot3rdNiNoude = FindNode(Root3rdNiNoude, "360Corr0");
+			nSpineNiNoude = FindNode(Root3rdNiNoude, "Bip01 Spine");
 
-		nSpineNiNoude = FindNode(Root3rdNiNoude, "Bip01 Spine");
+			weaponNiNoude = FindNode(Root3rdNiNoude, "Weapon");
 
-		weaponNiNoude = FindNode(Root3rdNiNoude, "Weapon");
-
-		init = true;
+			init = true;
+		}
 		break;
 	}
 }
