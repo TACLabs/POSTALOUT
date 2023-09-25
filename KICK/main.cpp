@@ -300,8 +300,6 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 		init = false;
 		break;
 	case NVSEMessagingInterface::kMessage_PostLoadGame:
-		if (!init)
-		{
 			pc = PlayerCharacter::GetSingleton();
 			dh = DataHandler::Get();
 
@@ -323,7 +321,6 @@ void KickPanardGestion(NVSEMessagingInterface::Message* msg)
 			weaponNiNoude = FindNode(Root3rdNiNoude, "Weapon");
 
 			init = true;
-		}
 		break;
 	}
 }
