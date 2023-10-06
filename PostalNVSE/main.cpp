@@ -5,6 +5,7 @@
 #include "nvse/GameObjects.h"
 #include "SafeWrite.h"
 #include "EventParams.h"
+#include "NiNoudes.h"
 #include <string>
 //NoGore is unsupported in xNVSE
 
@@ -21,6 +22,10 @@ NVSEEventManagerInterface* g_eventInterface{};
 bool (*ExtractArgsEx)(COMMAND_ARGS_EX, ...);
 #endif
 
+#define REFR_RES *(UInt32*)result
+
+TESObjectREFR* s_tempPosMarker;
+
 /****************
  * Here we include the code + definitions for our script functions,
  * which are packed in header files to avoid lengthening this file.
@@ -30,6 +35,7 @@ bool (*ExtractArgsEx)(COMMAND_ARGS_EX, ...);
  ***************/
 #include "IsPlayerIdlePlaying.h"
 #include "OnStealEventHandler.h"
+#include "PlaceAtNode.h"
 
 // Shortcut macro to register a script command (assigning it an Opcode).
 #define RegisterScriptCommand(name) 	nvse->RegisterCommand(&kCommandInfo_ ##name)
@@ -42,6 +48,7 @@ bool (*ExtractArgsEx)(COMMAND_ARGS_EX, ...);
 #define REG_TYPED_CMD(name, type)	nvse->RegisterTypedCommand(&kCommandInfo_##name,kRetnType_##type)
 
 DEFINE_CMD_COND_PLUGIN(IsPlayerIdlePlaying, "is le player idle playing sur l'un de ses deux animdatas ?", 0, kParams_OneIdleForm);
+DEFINE_COMMAND_PLUGIN(PlaceAtNode, "place un object a l'endroit du node dans une ref", 1, kParams_OneString_OneForm);
 
 using EventFlags = NVSEEventManagerInterface::EventFlags;
 
@@ -58,6 +65,38 @@ bool NVSEPlugin_Query(const NVSEInterface* nvse, PluginInfo* info)
 	// version checks pass
 	// any version compatibility checks should be done here
 	return true;
+}
+
+NVSEMessagingInterface* g_messagingInterface{};
+PluginHandle	g_pluginHandle = kPluginHandle_Invalid;
+
+#define JMP_EAX(addr)  __asm mov eax, addr __asm jmp eax
+#define GAME_HEAP 0x11F6238
+
+__declspec(naked) void* __stdcall Game_DoHeapAlloc(size_t size)
+{
+	__asm
+	{
+		mov		ecx, GAME_HEAP
+		JMP_EAX(0xAA3E40)
+	}
+}
+
+template <typename T = char> __forceinline T* Game_HeapAlloc(size_t count = 1)
+{
+	return (T*)Game_DoHeapAlloc(count * sizeof(T));
+}
+
+
+void PostalNVSEHandler(NVSEMessagingInterface::Message* msg)
+{
+	switch (msg->type)
+	{
+		case NVSEMessagingInterface::kMessage_DeferredInit:
+			s_tempPosMarker = ThisCall<TESObjectREFR*>(0x55A2F0, Game_HeapAlloc<TESObjectREFR>());
+			ThisCall(0x484490, s_tempPosMarker);
+			break;
+	}
 }
 
 bool NVSEPlugin_Load(NVSEInterface* nvse)
@@ -121,16 +160,13 @@ bool NVSEPlugin_Load(NVSEInterface* nvse)
 	 * since the script is looking for an Opcode which is no longer bound to the expected function.
 	 ************************/
 	
-	/*
-     RegisterScriptCommand(ExamplePlugin_PluginTest);
-	 REG_CMD(ExamplePlugin_CrashScript);
-	 REG_CMD(ExamplePlugin_IsNPCFemale);
-	 REG_CMD(ExamplePlugin_FunctionWithAnAlias);
-	 REG_TYPED_CMD(ExamplePlugin_ReturnForm, Form);
-	 REG_TYPED_CMD(ExamplePlugin_ReturnString, String);	// ignore the highlighting for String class, that's not being used here.
-	REG_TYPED_CMD(ExamplePlugin_ReturnArray, Array);
-	*/
 	REG_CMD(IsPlayerIdlePlaying);
+	REG_CMD(PlaceAtNode);
+
+	g_pluginHandle = nvse->GetPluginHandle();
+	g_messagingInterface = static_cast<NVSEMessagingInterface*>(nvse->QueryInterface(kInterface_Messaging));
+	g_messagingInterface->RegisterListener(g_pluginHandle, "NVSE", PostalNVSEHandler);
+
 
 	if (!nvse->isEditor)
 	{
