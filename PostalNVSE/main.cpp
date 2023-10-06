@@ -5,6 +5,7 @@
 #include "nvse/GameObjects.h"
 #include "SafeWrite.h"
 #include "EventParams.h"
+#include "NiNoudes.h"
 #include <string>
 //NoGore is unsupported in xNVSE
 
@@ -46,17 +47,8 @@ TESObjectREFR* s_tempPosMarker;
 //Credits: taken from JohnnyGuitarNVSE.
 #define REG_TYPED_CMD(name, type)	nvse->RegisterTypedCommand(&kCommandInfo_##name,kRetnType_##type)
 
-static ParamInfo kParams_OneString_OneForm_OneInt[3] =
-{
-	{	"string",	kParamType_String,	0	},
-	{	"form",		kParamType_AnyForm,	0	},
-	{	"int",      kParamType_Integer, 0 }
-};
-
-
-
 DEFINE_CMD_COND_PLUGIN(IsPlayerIdlePlaying, "is le player idle playing sur l'un de ses deux animdatas ?", 0, kParams_OneIdleForm);
-DEFINE_COMMAND_PLUGIN(PlaceAtNode, "place un object a l'endroit du node dans une ref", 1, kParams_OneString_OneForm_OneInt);
+DEFINE_COMMAND_PLUGIN(PlaceAtNode, "place un object a l'endroit du node dans une ref", 1, kParams_OneString_OneForm);
 
 using EventFlags = NVSEEventManagerInterface::EventFlags;
 
