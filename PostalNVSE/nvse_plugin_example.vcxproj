@@ -368,6 +368,7 @@
     <ClInclude Include="..\nvse\nvse\utility.h" />
     <ClInclude Include="IsPlayerIdlePlaying.h" />
     <ClInclude Include="OnStealEventHandler.h" />
+    <ClInclude Include="PlaceAtNode.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
