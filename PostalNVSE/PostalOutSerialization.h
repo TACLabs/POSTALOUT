@@ -91,7 +91,7 @@ void PostalOutSerializationInit(const NVSEInterface* nvse)
 	_ReadRecordData = serialization->ReadRecordData;
 	_ResolveRefID = serialization->ResolveRefID;
 	_OpenRecord = serialization->OpenRecord;
-	serialization->SetLoadCallback(nvse->GetPluginHandle(), LoadGameCallback);
+	serialization->SetPreLoadCallback(nvse->GetPluginHandle(), LoadGameCallback);
 	serialization->SetSaveCallback(nvse->GetPluginHandle(), SaveGameCallback);
 }
 
