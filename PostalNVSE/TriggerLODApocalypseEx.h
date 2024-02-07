@@ -20,11 +20,13 @@ bool Cmd_TriggerLODApocalypseEx_Execute(COMMAND_ARGS) {
 	return true;
 }
 
+
 void hann()
 {
 	Console_Print("LOAD");
 }
 
+/*
 int retourTest1 = 0x6F6F00;
 int doOnce = 0;
 __declspec(naked) void test1()
@@ -39,8 +41,10 @@ __declspec(naked) void test1()
 		jmp retourTest1
 	}
 }
+*/
 
 void TriggerLODApocalypseExHooks()
 {
-	WriteRelJump(0x6F6E63, (UInt32)test1);
+	//WriteRelJump(0x6F6E63, (UInt32)test1);		//PETIT TEST
+	//WriteRelJump(0x6F6E63, 0x6F6E99);				LOAD LE POSTAPOCALYPSE LOAD, BIEN COMME IL FAUT, DES LE LANCEMENT DU JEU
 }

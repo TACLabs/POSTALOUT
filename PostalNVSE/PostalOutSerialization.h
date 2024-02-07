@@ -79,7 +79,11 @@ void LoadGameCallback(void*)
 		}
 	}
 
-	Console_Print("DATA");
+	/*
+	for (const auto& paire : LODsuffixesMap) {
+		Console_Print("%s - %d", paire.first.c_str(), paire.second);
+	}
+	*/
 }
 
 void PostalOutSerializationInit(const NVSEInterface* nvse)
