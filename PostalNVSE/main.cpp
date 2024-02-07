@@ -28,7 +28,11 @@ bool (*ExtractArgsEx)(COMMAND_ARGS_EX, ...);
  * This is because the "fn_.h" files are only used here,
  * and they are included after such globals/macros have been defined.
  ***************/
+#include "PostalOutSerialization.h"
+
 #include "IsPlayerIdlePlaying.h"
+#include "TriggerLODApocalypseEx.h"
+
 #include "OnStealEventHandler.h"
 
 // Shortcut macro to register a script command (assigning it an Opcode).
@@ -42,6 +46,17 @@ bool (*ExtractArgsEx)(COMMAND_ARGS_EX, ...);
 #define REG_TYPED_CMD(name, type)	nvse->RegisterTypedCommand(&kCommandInfo_##name,kRetnType_##type)
 
 DEFINE_CMD_COND_PLUGIN(IsPlayerIdlePlaying, "is le player idle playing sur l'un de ses deux animdatas ?", 0, kParams_OneIdleForm);
+DEFINE_COMMAND_PLUGIN(TriggerLODApocalypseEx, "Toggle le trigger du LOD with the specified suffix", 0, kParams_OneString);
+
+void MessageHandler(NVSEMessagingInterface::Message* msg) {
+	switch (msg->type) {
+	case NVSEMessagingInterface::kMessage_PreLoadGame:
+		LODsuffixesMap.clear();
+	default:
+		break;
+	}
+}
+
 
 using EventFlags = NVSEEventManagerInterface::EventFlags;
 
@@ -73,7 +88,7 @@ bool NVSEPlugin_Load(NVSEInterface* nvse)
 		g_arrayInterface = static_cast<NVSEArrayVarInterface*>(nvse->QueryInterface(kInterface_ArrayVar));
 		g_dataInterface = static_cast<NVSEDataInterface*>(nvse->QueryInterface(kInterface_Data));
 		g_eventInterface = static_cast<NVSEEventManagerInterface*>(nvse->QueryInterface(kInterface_EventManager));
-		g_serializationInterface = static_cast<NVSESerializationInterface*>(nvse->QueryInterface(kInterface_Serialization));
+		//g_serializationInterface = static_cast<NVSESerializationInterface*>(nvse->QueryInterface(kInterface_Serialization));
 		g_consoleInterface = static_cast<NVSEConsoleInterface*>(nvse->QueryInterface(kInterface_Console));
 		ExtractArgsEx = g_script->ExtractArgsEx;
 #endif
@@ -131,9 +146,16 @@ bool NVSEPlugin_Load(NVSEInterface* nvse)
 	REG_TYPED_CMD(ExamplePlugin_ReturnArray, Array);
 	*/
 	REG_CMD(IsPlayerIdlePlaying);
+	REG_CMD(TriggerLODApocalypseEx);
 
 	if (!nvse->isEditor)
 	{
+		((NVSEMessagingInterface*)nvse->QueryInterface(kInterface_Messaging))->RegisterListener(nvse->GetPluginHandle(), "NVSE", MessageHandler);
+
+		PostalOutSerializationInit(nvse);
+
+		TriggerLODApocalypseExHooks();
+
 		OnStealEventHandler::WriteHook();
 		g_eventInterface->RegisterEvent(OnStealEventHandler::eventName, 0, 0, EventFlags::kFlag_FlushOnLoad);
 	}

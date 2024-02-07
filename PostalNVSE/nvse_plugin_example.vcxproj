@@ -198,7 +198,7 @@
     </Link>
     <PostBuildEvent>
       <Message>Installing DLL...</Message>
-      <Command>copy "$(TargetPath)" "C:\Users\Alexandre\AppData\Local\ModOrganizer\New Vegas\mods\PostalNVSE\NVSE\plugins\PostalNVSE.dll"</Command>
+      <Command>copy "$(TargetPath)" "C:\Users\Alexandre\AppData\Local\ModOrganizer\New Vegas\mods\PostalOut NVSE Plugin\NVSE\plugins\PostalNVSE.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GECK|Win32'">
@@ -368,6 +368,8 @@
     <ClInclude Include="..\nvse\nvse\utility.h" />
     <ClInclude Include="IsPlayerIdlePlaying.h" />
     <ClInclude Include="OnStealEventHandler.h" />
+    <ClInclude Include="PostalOutSerialization.h" />
+    <ClInclude Include="TriggerLODApocalypseEx.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

@@ -135,6 +135,8 @@
     </ClInclude>
     <ClInclude Include="IsPlayerIdlePlaying.h" />
     <ClInclude Include="OnStealEventHandler.h" />
+    <ClInclude Include="PostalOutSerialization.h" />
+    <ClInclude Include="TriggerLODApocalypseEx.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
