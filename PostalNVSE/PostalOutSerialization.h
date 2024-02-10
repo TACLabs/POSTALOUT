@@ -11,10 +11,54 @@ bool (*_OpenRecord)(UInt32 type, UInt32 version);
 
 std::unordered_map<std::string, bool> LODsuffixesMap;
 
+const int MAX_STRING_LENGTH = 260;
+char** formatsArray;
+int formatsNumber = 0;
+int formatsIndex = 0;
+
 enum RecordIDs
 {
 	kRecordID_LODsuffixes = 'POLS',
 };
+
+char** getFormatsFromMap(std::unordered_map<std::string, bool> map, int& numberOfFormats)
+{
+	numberOfFormats = 0;
+	for (const auto& entry : map) {
+		if (entry.second) {
+			numberOfFormats++;
+		}
+	}
+
+	char** result = new char* [numberOfFormats];
+	for (int i = 0; i < numberOfFormats; ++i) {
+		result[i] = new char[MAX_STRING_LENGTH];
+	}
+
+	int currentIndex = 0;
+	for (const auto& entry : map) {
+		if (entry.second) {
+			char buffer[MAX_STRING_LENGTH];
+			strcpy(buffer, "Data\\Meshes\\Landscape\\LOD\\%s\\Blocks\\%s.Level%i.X%i.Y%i.");
+			strcat(buffer, entry.first.c_str());
+			strcat(buffer, ".NIF\0");
+
+			strncpy(result[currentIndex], buffer, MAX_STRING_LENGTH - 1);
+
+			currentIndex++;
+		}
+	}
+
+	return result;
+}
+
+void freeTheFormats(char** arrayOfFormats, int numberOfFormats)
+{
+	for (int i = 0; i < numberOfFormats; ++i) {
+		delete[] arrayOfFormats[i];
+	}
+	delete[] arrayOfFormats;
+}
 
 void SaveGameCallback(void*)
 {
@@ -39,7 +83,7 @@ void SaveGameCallback(void*)
 	}
 }
 
-void LoadGameCallback(void*)
+void PreLoadGameCallback(void*)
 {
 	UInt32 type, version, length;
 	while (_GetNextRecordInfo(&type, &version, &length))
@@ -79,11 +123,8 @@ void LoadGameCallback(void*)
 		}
 	}
 
-	/*
-	for (const auto& paire : LODsuffixesMap) {
-		Console_Print("%s - %d", paire.first.c_str(), paire.second);
-	}
-	*/
+	freeTheFormats(formatsArray, formatsNumber);
+	formatsArray = getFormatsFromMap(LODsuffixesMap, formatsNumber);
 }
 
 void PostalOutSerializationInit(const NVSEInterface* nvse)
@@ -95,7 +136,7 @@ void PostalOutSerializationInit(const NVSEInterface* nvse)
 	_ReadRecordData = serialization->ReadRecordData;
 	_ResolveRefID = serialization->ResolveRefID;
 	_OpenRecord = serialization->OpenRecord;
-	serialization->SetPreLoadCallback(nvse->GetPluginHandle(), LoadGameCallback);
+	serialization->SetPreLoadCallback(nvse->GetPluginHandle(), PreLoadGameCallback);
 	serialization->SetSaveCallback(nvse->GetPluginHandle(), SaveGameCallback);
 }
 
